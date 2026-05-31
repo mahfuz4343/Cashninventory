@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LinkNet ISP Management — petty cash, daily cost, conveyance, and inventory tracker">
+<meta name="theme-color" content="#00d4ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LinkNet">
 <title>LinkNet — ISP Management</title>
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -452,6 +459,7 @@
     <button class="nav-tab" onclick="showTab('inventory')" id="tab-inventory"><span class="tab-icon">📦</span>Inventory</button>
     <button class="nav-tab" onclick="showTab('invlog')" id="tab-invlog"><span class="tab-icon">📜</span>Stock Log</button>
     <button class="nav-tab" onclick="showTab('export')" id="tab-export"><span class="tab-icon">📊</span>Export</button>
+    <button class="nav-tab" onclick="showTab('reports')" id="tab-reports"><span class="tab-icon">🗂️</span>Bill Reports</button>
     <button class="nav-tab" onclick="showTab('settings')" id="tab-settings"><span class="tab-icon">⚙️</span>Settings</button>
   </div>
 
@@ -590,7 +598,12 @@
               <option>Food / Allowance</option>
               <option>Tool / Equipment</option>
               <option>Cable Work</option>
+              <option>Fiber Link Down</option>
+              <option>Support</option>
               <option>Office Supply</option>
+              <option>Courier Cost</option>
+              <option>Stationary</option>
+              <option>Print</option>
               <option>Electricity</option>
               <option>Other</option>
             </select>
@@ -691,6 +704,18 @@
             <input type="text" class="form-control" id="cv-staff" placeholder="Name of person…">
           </div>
           <div class="form-group">
+            <label class="form-label">Staff ID</label>
+            <input type="text" class="form-control" id="cv-staffid" placeholder="Employee ID…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bill Type</label>
+            <select class="form-control" id="cv-billtype">
+              <option value="corporate">Corporate Support Conveyance</option>
+              <option value="broadband">Broadband Support Conveyance</option>
+              <option value="food">Food / Lunch Bill</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">From</label>
             <input type="text" class="form-control" id="cv-from" placeholder="Starting point…">
           </div>
@@ -728,8 +753,8 @@
             <input type="number" class="form-control" id="cv-amount" placeholder="0" min="0">
           </div>
           <div class="form-group">
-            <label class="form-label">Note</label>
-            <input type="text" class="form-control" id="cv-note" placeholder="Extra details…">
+            <label class="form-label">Note / Remarks</label>
+            <input type="text" class="form-control" id="cv-note" placeholder="Duration or details…">
           </div>
           <div class="form-group" style="align-self:end;">
             <button class="btn btn-primary" onclick="addConveyance()">＋ Add Bill</button>
@@ -747,11 +772,118 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th>Date</th><th>Staff</th><th>From → To</th><th>Purpose</th><th>Vehicle</th><th>Note</th><th>Amount</th><th></th>
+              <th>Date</th><th>Staff</th><th>Bill Type</th><th>From → To</th><th>Purpose</th><th>Note</th><th>Amount</th><th></th>
             </tr></thead>
             <tbody id="cv-tbody"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ─── BILL REPORTS ─── -->
+    <div class="section" id="section-reports">
+      <div class="section-header">
+        <div><h2>Bill Reports</h2><p>Generate official monthly expense &amp; conveyance reports</p></div>
+      </div>
+
+      <!-- Report Settings Card -->
+      <div class="card">
+        <div class="card-title">⚙ Report Settings</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Company Name</label>
+            <input type="text" class="form-control" id="rpt-company" placeholder="e.g. BDCOM ONLINE LIMITED" value="BDCOM ONLINE LIMITED">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Zone / Area</label>
+            <input type="text" class="form-control" id="rpt-zone" placeholder="e.g. FENI ZONE" value="FENI ZONE">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prepared By</label>
+            <input type="text" class="form-control" id="rpt-prepared" placeholder="Name of preparer…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input type="text" class="form-control" id="rpt-desig" placeholder="e.g. In-charge | Feni Zone">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Report From</label>
+            <input type="date" class="form-control" id="rpt-from">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Report To</label>
+            <input type="date" class="form-control" id="rpt-to">
+          </div>
+        </div>
+        <!-- Approvers -->
+        <div style="margin-top:16px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Signatory Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Checked By #1 Name</label>
+              <input type="text" class="form-control" id="rpt-chk1name" placeholder="Name…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Checked By #1 Designation</label>
+              <input type="text" class="form-control" id="rpt-chk1desig" placeholder="Designation…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Checked By #2 Name</label>
+              <input type="text" class="form-control" id="rpt-chk2name" placeholder="Name…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Checked By #2 Designation</label>
+              <input type="text" class="form-control" id="rpt-chk2desig" placeholder="Designation…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Approved By Name</label>
+              <input type="text" class="form-control" id="rpt-apvname" placeholder="Name…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Approved By Designation</label>
+              <input type="text" class="form-control" id="rpt-apvdesig" placeholder="Designation…">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Generators -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <!-- Monthly Expense Report -->
+        <div class="card" style="border-color:rgba(0,212,255,0.3);">
+          <div class="card-title">📋 Monthly Expenses Report</div>
+          <p style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:14px;line-height:1.6;">
+            Combines <strong style="color:var(--accent)">Daily Cost</strong> + <strong style="color:#c77dff">Conveyance Bills</strong> into a single official expense bill sheet — matching the BDCOM format with SL, Purpose, Amount, Remarks columns and signature rows.
+          </p>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label">Pop / Area Description</label>
+            <input type="text" class="form-control" id="rpt-pop" placeholder="e.g. Feni POP surrounding Area">
+          </div>
+          <button class="btn btn-primary" onclick="generateExpenseReport()" style="width:100%;">⬇ Download Expense Report</button>
+          <div id="rpt-exp-msg" style="font-family:var(--mono);font-size:11px;margin-top:8px;min-height:16px;"></div>
+        </div>
+
+        <!-- Conveyance Summary Report -->
+        <div class="card" style="border-color:rgba(199,125,255,0.3);">
+          <div class="card-title">🚗 Conveyance &amp; Food Expenses Report</div>
+          <p style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:14px;line-height:1.6;">
+            Generates a staff-wise conveyance summary with <strong style="color:var(--green)">Corporate</strong> + <strong style="color:#ff8c42">Broadband</strong> support columns + <strong style="color:var(--yellow)">Food Bill</strong> — exactly matching the zone conveyance bill format.
+          </p>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label">Report Date (printed on sheet)</label>
+            <input type="date" class="form-control" id="rpt-cvdate">
+          </div>
+          <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#7b2fff,#c77dff);" onclick="generateConveyanceReport()">⬇ Download Conveyance Report</button>
+          <div id="rpt-cv-msg" style="font-family:var(--mono);font-size:11px;margin-top:8px;min-height:16px;"></div>
+        </div>
+
+      </div>
+
+      <!-- Preview table for period -->
+      <div class="card">
+        <div class="card-title">📅 Period Data Preview</div>
+        <div id="rpt-preview" style="font-family:var(--mono);font-size:12px;color:var(--text2);">Select a date range above to preview entries.</div>
       </div>
     </div>
 
@@ -889,14 +1021,23 @@
         <button class="btn btn-primary" onclick="changePW()">Update Password</button>
         <div id="pw-msg" style="margin-top:10px;font-family:var(--mono);font-size:12px;"></div>
       </div>
-      <div class="card" style="max-width:460px;margin-top:0;">
+      <div class="card" style="max-width:520px;margin-top:0;">
         <div class="card-title">Data Management</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-ghost" onclick="exportData()">⬇ Export JSON</button>
-          <button class="btn btn-ghost" onclick="importTrigger()">⬆ Import JSON</button>
+        <div style="margin-bottom:14px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Export Backup</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" onclick="exportData()">⬇ Export JSON</button>
+            <button class="btn btn-excel" onclick="exportDataExcel()">⬇ Export Excel Backup</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Import / Restore</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" onclick="importTrigger()">⬆ Import JSON</button>
+          </div>
           <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
         </div>
-        <p style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:12px;">All data is stored locally in your browser. Export regularly to back up.</p>
+        <p style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:12px;">All data is stored locally in your browser. Export regularly to back up. JSON can be re-imported; Excel is for records only.</p>
       </div>
       <div class="card" style="max-width:460px;margin-top:0;">
         <div class="card-title">Products & Units</div>
@@ -1003,6 +1144,13 @@ function initApp() {
     const el = document.getElementById(id);
     if(el) el.value = today;
   });
+  // Set report default date range (1st of current month to today)
+  const rptFrom = document.getElementById('rpt-from');
+  const rptTo   = document.getElementById('rpt-to');
+  const rptCvD  = document.getElementById('rpt-cvdate');
+  if(rptFrom) rptFrom.value = today.slice(0,8)+'01';
+  if(rptTo)   rptTo.value   = today;
+  if(rptCvD)  rptCvD.value  = today;
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
   document.getElementById('dash-date-label').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
@@ -1429,12 +1577,137 @@ function changePW() {
 }
 
 function exportData() {
-  const data = { cashList, dcList, invLog, stock, products, exportedAt: new Date().toISOString() };
+  const data = { cashList, dcList, cvList, invLog, stock, products, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `linknet-backup-${todayStr()}.json`;
   a.click();
+}
+
+function exportDataExcel() {
+  const wb = XLSX.utils.book_new();
+  const today = todayStr();
+
+  // ── Helper: write a sheet from array-of-objects with styled header ──
+  function makeBackupSheet(data, cols) {
+    if (!data || !data.length) {
+      const ws = {}; ws['!ref'] = 'A1:A1';
+      ws['A1'] = { t:'s', v:'No data', s: cellS(false,10,'left') };
+      return ws;
+    }
+    const ws = {}; ws['!merges'] = [];
+    const hdrStyle = {
+      font:  { bold:true, name:'Arial', sz:10, color:{rgb:'FFFFFF'} },
+      fill:  { fgColor:{rgb:'1F3864'} },
+      alignment: { horizontal:'center', vertical:'center' },
+      border: { bottom:{style:'medium',color:{rgb:'00D4FF'}} }
+    };
+    const dataStyle = { font:{name:'Arial',sz:9}, alignment:{vertical:'center',wrapText:true} };
+    const numStyle  = { font:{name:'Arial',sz:9}, alignment:{horizontal:'right',vertical:'center'}, numFmt:'"৳"#,##0' };
+
+    // Header row
+    cols.forEach((col,ci) => {
+      const addr = XLSX.utils.encode_cell({r:0,c:ci});
+      ws[addr] = { t:'s', v:col.label, s:hdrStyle };
+    });
+
+    // Data rows
+    data.forEach((row,ri) => {
+      cols.forEach((col,ci) => {
+        const v = row[col.key];
+        const addr = XLSX.utils.encode_cell({r:ri+1,c:ci});
+        const isNum = typeof v === 'number';
+        ws[addr] = { t:isNum?'n':'s', v:v===null||v===undefined?'':v, s:isNum&&col.money ? numStyle : dataStyle };
+      });
+    });
+
+    ws['!cols'] = cols.map(c=>({wch:c.w||14}));
+    ws['!ref']  = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:cols.length-1}});
+    return ws;
+  }
+
+  // ── Info sheet ──
+  const infoWs = {};
+  const infoStyle = { font:{name:'Arial',bold:true,sz:13,color:{rgb:'00D4FF'}}, alignment:{horizontal:'center'} };
+  const subStyle  = { font:{name:'Arial',sz:10,color:{rgb:'888888'}}, alignment:{horizontal:'center'} };
+  infoWs['!merges'] = [{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:1,c:0},e:{r:1,c:3}},{s:{r:2,c:0},e:{r:2,c:3}}];
+  infoWs['A1'] = { t:'s', v:'LinkNet ISP — Full Data Backup', s:infoStyle };
+  infoWs['A2'] = { t:'s', v:`Exported on: ${today}`, s:subStyle };
+  infoWs['A3'] = { t:'s', v:'This file contains all data for re-reference. Use JSON export for re-import.', s:subStyle };
+  const counts = [
+    ['Petty Cash Entries', cashList.length],
+    ['Daily Cost Entries', dcList.length],
+    ['Conveyance Bills',   cvList.length],
+    ['Inventory Movements',invLog.length],
+  ];
+  counts.forEach(([label, count], i) => {
+    const r = 4 + i;
+    infoWs[XLSX.utils.encode_cell({r,c:0})] = { t:'s', v:label, s:{font:{name:'Arial',sz:10}} };
+    infoWs[XLSX.utils.encode_cell({r,c:1})] = { t:'n', v:count, s:{font:{name:'Arial',sz:10,bold:true}} };
+  });
+  infoWs['!cols'] = [{wch:26},{wch:12},{wch:12},{wch:12}];
+  infoWs['!ref']  = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:8,c:3}});
+  XLSX.utils.book_append_sheet(wb, infoWs, 'Info');
+
+  // ── Petty Cash sheet ──
+  XLSX.utils.book_append_sheet(wb, makeBackupSheet(cashList, [
+    {key:'date',     label:'Date',     w:14},
+    {key:'type',     label:'Type',     w:10},
+    {key:'category', label:'Category', w:22},
+    {key:'note',     label:'Note',     w:32},
+    {key:'amount',   label:'Amount',   w:14, money:true},
+  ]), 'Petty Cash');
+
+  // ── Daily Cost sheet ──
+  XLSX.utils.book_append_sheet(wb, makeBackupSheet(dcList, [
+    {key:'date',     label:'Date',     w:14},
+    {key:'category', label:'Category', w:24},
+    {key:'note',     label:'Note',     w:34},
+    {key:'amount',   label:'Amount',   w:14, money:true},
+  ]), 'Daily Cost');
+
+  // ── Conveyance sheet ──
+  XLSX.utils.book_append_sheet(wb, makeBackupSheet(cvList, [
+    {key:'date',     label:'Date',     w:14},
+    {key:'staff',    label:'Staff',    w:20},
+    {key:'staffId',  label:'Staff ID', w:12},
+    {key:'billType', label:'Bill Type',w:18},
+    {key:'purpose',  label:'Purpose',  w:18},
+    {key:'from',     label:'From',     w:16},
+    {key:'to',       label:'To',       w:16},
+    {key:'note',     label:'Note',     w:28},
+    {key:'amount',   label:'Amount',   w:14, money:true},
+  ]), 'Conveyance');
+
+  // ── Inventory Log sheet ──
+  XLSX.utils.book_append_sheet(wb, makeBackupSheet(invLog.map(m=>({
+    ...m, productName: prodName(m.product), unit: prodUnit(m.product)
+  })), [
+    {key:'date',        label:'Date',      w:14},
+    {key:'productName', label:'Product',   w:18},
+    {key:'movement',    label:'Move',      w:8},
+    {key:'qty',         label:'Qty',       w:8},
+    {key:'stockAfter',  label:'Stock After',w:14},
+    {key:'unit',        label:'Unit',      w:10},
+    {key:'note',        label:'Note',      w:28},
+  ]), 'Inventory Log');
+
+  // ── Current Stock sheet ──
+  const stockRows = products.map(p=>({
+    name: p.name, unit: p.unit, stock: stock[p.id]||0, low: p.low,
+    status: (stock[p.id]||0) < p.low ? 'LOW' : 'OK'
+  }));
+  XLSX.utils.book_append_sheet(wb, makeBackupSheet(stockRows, [
+    {key:'name',   label:'Product',        w:22},
+    {key:'unit',   label:'Unit',           w:12},
+    {key:'stock',  label:'Current Stock',  w:16},
+    {key:'low',    label:'Low Alert',      w:14},
+    {key:'status', label:'Status',         w:10},
+  ]), 'Stock Levels');
+
+  const filename = `LinkNet_DataBackup_${today}.xlsx`;
+  XLSX.writeFile(wb, filename, { bookType:'xlsx', cellStyles:true });
 }
 
 function importTrigger() { document.getElementById('import-file').click(); }
@@ -1448,6 +1721,7 @@ function importData(e) {
       if(!confirm('This will REPLACE all current data. Continue?')) return;
       if(d.cashList)  { cashList=d.cashList;  save('ln_cash',cashList); }
       if(d.dcList)    { dcList=d.dcList;       save('ln_dc',dcList); }
+      if(d.cvList)    { cvList=d.cvList;        save('ln_cv',cvList); }
       if(d.invLog)    { invLog=d.invLog;        save('ln_invlog',invLog); }
       if(d.stock)     { stock=d.stock;          save('ln_stock',stock); }
       if(d.products)  { products=d.products;    save('ln_products',products); }
@@ -1463,21 +1737,24 @@ function importData(e) {
 //  CONVEYANCE BILL
 // ════════════════════════════════════════════════════════════
 function addConveyance() {
-  const date    = document.getElementById('cv-date').value;
-  const staff   = document.getElementById('cv-staff').value.trim();
-  const from    = document.getElementById('cv-from').value.trim();
-  const to      = document.getElementById('cv-to').value.trim();
-  const purpose = document.getElementById('cv-purpose').value;
-  const vehicle = document.getElementById('cv-vehicle').value;
-  const amount  = parseFloat(document.getElementById('cv-amount').value);
-  const note    = document.getElementById('cv-note').value.trim();
+  const date     = document.getElementById('cv-date').value;
+  const staff    = document.getElementById('cv-staff').value.trim();
+  const staffId  = document.getElementById('cv-staffid').value.trim();
+  const billType = document.getElementById('cv-billtype').value;
+  const from     = document.getElementById('cv-from').value.trim();
+  const to       = document.getElementById('cv-to').value.trim();
+  const purpose  = document.getElementById('cv-purpose').value;
+  const vehicle  = document.getElementById('cv-vehicle').value;
+  const amount   = parseFloat(document.getElementById('cv-amount').value);
+  const note     = document.getElementById('cv-note').value.trim();
 
   if (!date || !staff || !amount || amount <= 0) {
     alert('Date, Staff Name and Amount are required.'); return;
   }
-  cvList.push({ id: uid(), date, staff, from, to, purpose, vehicle, amount, note });
+  cvList.push({ id: uid(), date, staff, staffId, billType, from, to, purpose, vehicle, amount, note });
   save('ln_cv', cvList);
   document.getElementById('cv-staff').value  = '';
+  document.getElementById('cv-staffid').value= '';
   document.getElementById('cv-from').value   = '';
   document.getElementById('cv-to').value     = '';
   document.getElementById('cv-amount').value = '';
@@ -1521,14 +1798,17 @@ function renderConveyance() {
   if (fStaff) list = list.filter(c => c.staff.toLowerCase().includes(fStaff));
   if (fMonth) list = list.filter(c => c.date.startsWith(fMonth));
 
+  const BT_LABELS = { corporate:'🏢 Corporate', broadband:'📡 Broadband', food:'🍽 Food' };
+  const BT_COLORS = { corporate:'badge-blue', broadband:'badge-green', food:'badge-yellow' };
+
   const tbody = document.getElementById('cv-tbody');
   tbody.innerHTML = list.length ? list.map(c => `
     <tr>
       <td>${fmtDate(c.date)}</td>
-      <td><strong>${c.staff}</strong></td>
+      <td><strong>${c.staff}</strong>${c.staffId?`<br><span style="color:var(--muted);font-size:10px">ID:${c.staffId}</span>`:''}</td>
+      <td><span class="badge ${BT_COLORS[c.billType]||'badge-blue'}">${BT_LABELS[c.billType]||c.billType||'—'}</span></td>
       <td style="color:var(--text2);font-size:11px;">${c.from||'—'} → ${c.to||'—'}</td>
-      <td><span class="badge badge-blue">${c.purpose}</span></td>
-      <td style="color:var(--text2)">${c.vehicle}</td>
+      <td><span class="badge badge-blue" style="font-size:9px">${c.purpose}</span></td>
       <td style="color:var(--text2)">${c.note||'—'}</td>
       <td style="color:var(--red);font-weight:700;">-${fmt(c.amount)}</td>
       <td><button class="del-btn" onclick="deleteCV('${c.id}')">✕</button></td>
@@ -1954,6 +2234,444 @@ function quickExport(period) {
   // 'all' = no filter
   exportExcel(from, to, true);
 }
+
+// ════════════════════════════════════════════════════════════
+//  BILL REPORTS — OFFICIAL FORMAT
+// ════════════════════════════════════════════════════════════
+
+// ── Number to Words (BDT) ──
+function numToWords(n) {
+  if (n === 0) return 'Zero';
+  const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
+                 'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen',
+                 'Seventeen','Eighteen','Nineteen'];
+  const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function convert(num) {
+    if (num < 20) return ones[num];
+    if (num < 100) return tens[Math.floor(num/10)] + (num%10 ? ' '+ones[num%10] : '');
+    if (num < 1000) return ones[Math.floor(num/100)] + ' Hundred' + (num%100 ? ' '+convert(num%100) : '');
+    if (num < 100000) return convert(Math.floor(num/1000)) + ' Thousand' + (num%1000 ? ' '+convert(num%1000) : '');
+    if (num < 10000000) return convert(Math.floor(num/100000)) + ' Lakh' + (num%100000 ? ' '+convert(num%100000) : '');
+    return convert(Math.floor(num/10000000)) + ' Crore' + (num%10000000 ? ' '+convert(num%10000000) : '');
+  }
+  const integer = Math.floor(n);
+  const decimal = Math.round((n - integer) * 100);
+  let words = 'BDT ' + convert(integer) + ' Taka';
+  if (decimal > 0) words += ' and ' + convert(decimal) + ' Paisa';
+  words += ' Only.';
+  return words;
+}
+
+// ── Date period string e.g. "01.05.2026 to 15.05.2026" ──
+function periodStr(from, to) {
+  const f = from ? from.split('-').reverse().join('.') : '?';
+  const t = to   ? to.split('-').reverse().join('.')   : '?';
+  return `${f} to ${t}`;
+}
+function periodStrShort(from, to) {
+  // "1st to 15th May'2026"
+  function nth(d) {
+    const s = ['th','st','nd','rd'];
+    const v = d % 100;
+    return d + (s[(v-20)%10] || s[v] || s[0]);
+  }
+  if (!from || !to) return '';
+  const fd = new Date(from+'T00:00:00'); const td = new Date(to+'T00:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${nth(fd.getDate())} to ${nth(td.getDate())} ${months[td.getMonth()]}'${td.getFullYear()}`;
+}
+
+// ── Shared border style ──
+function brd(thin) {
+  const s = { style: thin ? 'thin' : 'medium', color: { rgb: '000000' } };
+  return { top: s, bottom: s, left: s, right: s };
+}
+function cellS(bold, sz, align, bg, color, border) {
+  return {
+    font: { name: 'Arial', bold: !!bold, sz: sz||10, color: { rgb: color||'000000' } },
+    alignment: { horizontal: align||'left', vertical: 'center', wrapText: true },
+    fill: bg ? { fgColor: { rgb: bg } } : undefined,
+    border: border || undefined
+  };
+}
+
+// ── Write a cell ──
+function wc(ws, r, c, v, style) {
+  const addr = XLSX.utils.encode_cell({ r, c });
+  const isNum = typeof v === 'number';
+  ws[addr] = { t: isNum ? 'n' : 's', v: v === null || v === undefined ? '' : v, s: style };
+  return addr;
+}
+// ── Merge helper ──
+function mg(ws, r1, c1, r2, c2) {
+  ws['!merges'] = ws['!merges'] || [];
+  ws['!merges'].push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
+}
+// ── Set row height ──
+function rh(ws, r, hpt) {
+  ws['!rows'] = ws['!rows'] || [];
+  ws['!rows'][r] = { hpt };
+}
+
+// ─────────────────────────────────────────────────────────
+//  REPORT 1: Monthly Expenses Report (SL | Purpose | Amount | Remarks)
+// ─────────────────────────────────────────────────────────
+function generateExpenseReport() {
+  const from     = document.getElementById('rpt-from').value;
+  const to       = document.getElementById('rpt-to').value;
+  const company  = document.getElementById('rpt-company').value || 'COMPANY NAME';
+  const zone     = document.getElementById('rpt-zone').value    || 'ZONE';
+  const prepared = document.getElementById('rpt-prepared').value || '';
+  const desig    = document.getElementById('rpt-desig').value    || '';
+  const pop      = document.getElementById('rpt-pop').value      || zone + ' POP surrounding Area';
+  const chk1n    = document.getElementById('rpt-chk1name').value;
+  const chk1d    = document.getElementById('rpt-chk1desig').value;
+  const chk2n    = document.getElementById('rpt-chk2name').value;
+  const chk2d    = document.getElementById('rpt-chk2desig').value;
+  const apvn     = document.getElementById('rpt-apvname').value;
+  const apvd     = document.getElementById('rpt-apvdesig').value;
+  const msgEl    = document.getElementById('rpt-exp-msg');
+
+  if (!from || !to) { msgEl.style.color='var(--red)'; msgEl.textContent='Please select date range.'; return; }
+
+  // Gather entries
+  const dcEntries = filterByDate(dcList, from, to);
+  const cvEntries = filterByDate(cvList, from, to);
+
+  // Build rows: DC entries + CV entries, sorted by date
+  const rows = [];
+  dcEntries.forEach(e => rows.push({
+    date: e.date,
+    purpose: e.category + (e.note ? ' [' + e.note + ']' : ''),
+    amount: e.amount,
+    remarks: 'Dated on: ' + e.date.split('-').reverse().join('/')
+  }));
+  cvEntries.forEach(e => {
+    const typeLabel = e.billType === 'food' ? 'Lunch Bill' :
+                      e.billType === 'broadband' ? 'Conveyance Bill' : 'Conveyance Bill';
+    const staffPart = e.staff ? ' [' + e.staff + ']' : '';
+    let purpose = typeLabel + staffPart;
+    rows.push({
+      date: e.date,
+      purpose,
+      amount: e.amount,
+      remarks: e.note || ('Dated on: ' + e.date.split('-').reverse().join('/'))
+    });
+  });
+  rows.sort((a,b) => a.date.localeCompare(b.date));
+
+  if (rows.length === 0) {
+    msgEl.style.color='var(--red)'; msgEl.textContent='No entries found for this period.'; return;
+  }
+
+  const ws = {}; ws['!merges'] = []; ws['!rows'] = [];
+  let r = 0;
+
+  // Company name header
+  const titleStyle = cellS(true, 14, 'center', 'DDEEFF', '00007F');
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, company, titleStyle);
+  rh(ws, r, 24); r++;
+
+  // Zone header
+  const zoneStyle = cellS(true, 12, 'center', 'DDEEFF', '00007F');
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, zone, zoneStyle);
+  rh(ws, r, 20); r++;
+
+  // Blank
+  rh(ws, r, 10); r++;
+
+  // Title
+  const titleRowStyle = cellS(true, 11, 'left', null, '000000');
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, `Expense for ${pop} - period from ${periodStr(from, to)}.`, titleRowStyle);
+  rh(ws, r, 28); r++;
+
+  // Blank
+  rh(ws, r, 8); r++;
+
+  // Table header
+  const hdrStyle = cellS(true, 10, 'center', 'BDD7EE', '000000', brd(false));
+  [['SL',4],['Purpose',30],['Amount',12],['Remarks',28]].forEach(([label, _], ci) => {
+    wc(ws, r, ci+1, label, hdrStyle);
+  });
+  rh(ws, r, 18); r++;
+
+  // Data rows
+  const dataStyle   = cellS(false,10,'left',  null,'000000',brd(true));
+  const dataStyleC  = cellS(false,10,'center',null,'000000',brd(true));
+  const dataStyleR  = cellS(false,10,'right', null,'000000',brd(true));
+  let total = 0;
+
+  rows.forEach((row, i) => {
+    total += row.amount;
+    wc(ws, r, 1, i+1,        dataStyleC);
+    wc(ws, r, 2, row.purpose, dataStyle);
+    wc(ws, r, 3, row.amount,  dataStyleR);
+    wc(ws, r, 4, row.remarks, dataStyle);
+    rh(ws, r, 16); r++;
+  });
+
+  // Total row
+  const totalStyle = cellS(true, 10, 'center', 'FFF2CC', '000000', brd(false));
+  mg(ws, r, 1, r, 2);
+  wc(ws, r, 1, 'Total Expenses', totalStyle);
+  wc(ws, r, 2, '',               totalStyle);
+  wc(ws, r, 3, total,            cellS(true,10,'right','FFF2CC','000000',brd(false)));
+  wc(ws, r, 4, '',               cellS(true,10,'left', 'FFF2CC','000000',brd(false)));
+  rh(ws, r, 18); r++;
+
+  // In word
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, 'In word: ' + numToWords(total), cellS(false, 10, 'left', null, '000000'));
+  rh(ws, r, 16); r++;
+
+  // Blank rows
+  r++; r++;
+
+  // Prepared By
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, 'Prepared By:', cellS(true,10,'left'));
+  rh(ws, r, 14); r++;
+  r++; // blank
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, prepared, cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  mg(ws, r, 1, r, 4);
+  wc(ws, r, 1, desig, cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+
+  r++; r++;
+
+  // Signature line — Checked By x2 + Approved By
+  const sigHdr = cellS(true,10,'left');
+  wc(ws, r, 1, 'Checked By',   sigHdr);
+  wc(ws, r, 2, '',             sigHdr);
+  wc(ws, r, 3, 'Checked By',   sigHdr);
+  wc(ws, r, 4, 'Approved By:', sigHdr);
+  rh(ws, r, 14); r++;
+
+  r++; r++; // signature blanks
+
+  wc(ws, r, 1, chk1n  || '______________', cellS(false,10,'left'));
+  wc(ws, r, 3, chk2n  || '______________', cellS(false,10,'left'));
+  wc(ws, r, 4, apvn   || '______________', cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  wc(ws, r, 1, chk1d  || '', cellS(false,10,'left'));
+  wc(ws, r, 3, chk2d  || '', cellS(false,10,'left'));
+  wc(ws, r, 4, apvd   || '', cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+
+  ws['!cols'] = [{ wch: 2 }, { wch: 6 }, { wch: 36 }, { wch: 14 }, { wch: 30 }];
+  ws['!ref']  = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:r,c:5} });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, periodStrShort(from, to) || 'Expenses');
+  const filename = `${zone.replace(/\s+/g,'-')}_Monthly_Expenses_${from}_to_${to}.xlsx`;
+  XLSX.writeFile(wb, filename, { bookType:'xlsx', cellStyles:true });
+  msgEl.style.color='var(--green)'; msgEl.textContent='✓ Downloaded: ' + filename;
+  setTimeout(()=>msgEl.textContent='',5000);
+}
+
+// ─────────────────────────────────────────────────────────
+//  REPORT 2: Conveyance & Food Expenses (Staff-wise summary)
+// ─────────────────────────────────────────────────────────
+function generateConveyanceReport() {
+  const from    = document.getElementById('rpt-from').value;
+  const to      = document.getElementById('rpt-to').value;
+  const zone    = document.getElementById('rpt-zone').value    || 'ZONE';
+  const rptDate = document.getElementById('rpt-cvdate').value  || todayStr();
+  const prepared= document.getElementById('rpt-prepared').value|| '';
+  const desig   = document.getElementById('rpt-desig').value   || '';
+  const chk1n   = document.getElementById('rpt-chk1name').value;
+  const chk1d   = document.getElementById('rpt-chk1desig').value;
+  const chk2n   = document.getElementById('rpt-chk2name').value;
+  const chk2d   = document.getElementById('rpt-chk2desig').value;
+  const apvn    = document.getElementById('rpt-apvname').value;
+  const apvd    = document.getElementById('rpt-apvdesig').value;
+  const msgEl   = document.getElementById('rpt-cv-msg');
+
+  if (!from || !to) { msgEl.style.color='var(--red)'; msgEl.textContent='Please select date range.'; return; }
+
+  const cvEntries = filterByDate(cvList, from, to);
+  if (cvEntries.length === 0) {
+    msgEl.style.color='var(--red)'; msgEl.textContent='No conveyance entries found for this period.'; return;
+  }
+
+  // Build staff map: { staffName: { id, corpAmt, corpCount, bbAmt, bbCount, foodAmt } }
+  const staffMap = {};
+  cvEntries.forEach(e => {
+    if (!staffMap[e.staff]) staffMap[e.staff] = { id: e.staffId||'', corpAmt:0, corpCount:0, bbAmt:0, bbCount:0, foodAmt:0 };
+    const s = staffMap[e.staff];
+    if (!s.id && e.staffId) s.id = e.staffId;
+    if (e.billType === 'corporate') { s.corpAmt += e.amount; s.corpCount++; }
+    else if (e.billType === 'broadband') { s.bbAmt += e.amount; s.bbCount++; }
+    else if (e.billType === 'food') { s.foodAmt += e.amount; }
+    else { s.corpAmt += e.amount; s.corpCount++; } // default to corporate
+  });
+
+  const staffList = Object.entries(staffMap);
+
+  const ws = {}; ws['!merges'] = []; ws['!rows'] = [];
+  // Total cols: A(0) B(1) C(2) D(3) E(4) F(5) G(6) H(7) I(8)
+  // SL | Name | ID | Corp Tk | Corp# | BB Tk | BB# | Food | Total
+  const COLS = 9;
+  let r = 0;
+
+  // Row 0: blank
+  rh(ws, r, 8); r++;
+
+  // Row 1: Title
+  mg(ws, r, 0, r, COLS-1);
+  wc(ws, r, 0, 'Conveyance Bill Summery', cellS(true, 14, 'center', null, '000000'));
+  rh(ws, r, 22); r++;
+
+  // Row 2: Zone + Date
+  wc(ws, r, 0, 'Zone: ' + zone, cellS(true, 10, 'left'));
+  mg(ws, r, 6, r, COLS-1);
+  wc(ws, r, 6, 'Date:: ' + rptDate.split('-').reverse().join('.'), cellS(true, 10, 'right'));
+  rh(ws, r, 16); r++;
+
+  // Row 3: Period
+  mg(ws, r, 0, r, COLS-1);
+  wc(ws, r, 0, 'Period:: ' + periodStrShort(from, to), cellS(false, 10, 'left'));
+  rh(ws, r, 14); r++;
+
+  // Blank
+  rh(ws, r, 8); r++;
+
+  // Row 5: Column headers (merged for Corporate and Broadband)
+  const hBg  = cellS(true, 10, 'center', 'BDD7EE', '000000', brd(false));
+  const hBgG = cellS(true, 10, 'center', 'C6EFCE', '000000', brd(false));
+
+  // Merge "For Corporate Support" over cols 3-4, "For Broadband Support" over 5-6
+  mg(ws, r, 3, r, 4);
+  mg(ws, r, 5, r, 6);
+  ['SL','Officer & Technician Name','ID','For Corporate Support','','For Broadband Support','','Food Bill','Total'].forEach((v, c) => {
+    wc(ws, r, c, v, c <= 2 ? hBg : c >= 7 ? hBg : c <= 4 ? hBgG : cellS(true,10,'center','FFD966','000000',brd(false)));
+  });
+  rh(ws, r, 20); r++;
+
+  // Row 6: Sub-headers
+  const sh = cellS(true, 9, 'center', 'DDEBF7', '000000', brd(true));
+  const shG = cellS(true, 9, 'center', 'E2EFDA', '000000', brd(true));
+  ['','','','Tk.','No. of Supp.','Tk.','No. of Supp.','',''].forEach((v, c) => {
+    wc(ws, r, c, v, c <= 2 ? sh : c >= 7 ? sh : c <= 4 ? shG : cellS(true,9,'center','FFF2CC','000000',brd(true)));
+  });
+  rh(ws, r, 16); r++;
+
+  // Data rows
+  const ds  = cellS(false, 10, 'center', null, '000000', brd(true));
+  const dsL = cellS(false, 10, 'left',   null, '000000', brd(true));
+  const dsR = cellS(false, 10, 'right',  null, '000000', brd(true));
+  let totCorp=0, totCorpC=0, totBB=0, totBBC=0, totFood=0, grandTotal=0;
+
+  staffList.forEach(([name, s], i) => {
+    const rowTotal = s.corpAmt + s.bbAmt + s.foodAmt;
+    totCorp+=s.corpAmt; totCorpC+=s.corpCount;
+    totBB+=s.bbAmt;     totBBC+=s.bbCount;
+    totFood+=s.foodAmt; grandTotal+=rowTotal;
+    [i+1, name, s.id||'', s.corpAmt, s.corpCount||'', s.bbAmt, s.bbCount||'', s.foodAmt, rowTotal].forEach((v,c)=>{
+      const st = c===1 ? dsL : c===0 ? ds : dsR;
+      wc(ws, r, c, v===0?'':v, st);
+    });
+    rh(ws, r, 16); r++;
+  });
+
+  // Total row
+  const ts  = cellS(true, 10, 'right',  'FFF2CC', '000000', brd(false));
+  const tsC = cellS(true, 10, 'center', 'FFF2CC', '000000', brd(false));
+  const tsL = cellS(true, 10, 'left',   'FFF2CC', '000000', brd(false));
+  mg(ws, r, 0, r, 2);
+  wc(ws, r, 0, 'Total', tsL);
+  wc(ws, r, 1, '', tsL); wc(ws, r, 2, '', tsL);
+  [totCorp, totCorpC||'', totBB, totBBC||'', totFood, grandTotal].forEach((v,i)=>wc(ws,r,3+i,v===0?'':v,ts));
+  rh(ws, r, 18); r++;
+
+  // In words
+  mg(ws, r, 0, r, COLS-1);
+  wc(ws, r, 0, 'In Words- ' + numToWords(grandTotal), cellS(false,10,'left'));
+  rh(ws, r, 16); r++;
+
+  r++; r++;
+
+  // Prepared By
+  mg(ws, r, 0, r, 2);
+  wc(ws, r, 0, 'Prepared By,', cellS(true,10,'left'));
+  rh(ws, r, 14); r++;
+  r++;
+  mg(ws, r, 0, r, 2);
+  wc(ws, r, 0, '____________', cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  mg(ws, r, 0, r, 2);
+  wc(ws, r, 0, prepared, cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  mg(ws, r, 0, r, 2);
+  wc(ws, r, 0, desig, cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  mg(ws, r, 0, r, 2);
+  wc(ws, r, 0, zone, cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+
+  r++;
+
+  // Checked x2 + Approved
+  wc(ws, r, 0, 'Checked By,', cellS(true,10,'left'));
+  wc(ws, r, 3, 'Checked By,', cellS(true,10,'left'));
+  wc(ws, r, 6, 'Approved By,', cellS(true,10,'left'));
+  rh(ws, r, 14); r++;
+  r++; r++;
+  wc(ws, r, 0, '_________________', cellS(false,10,'left'));
+  wc(ws, r, 3, '_______________________', cellS(false,10,'left'));
+  wc(ws, r, 6, '_____________________', cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  wc(ws, r, 0, chk1n || '', cellS(false,10,'left'));
+  wc(ws, r, 3, chk2n || '', cellS(false,10,'left'));
+  wc(ws, r, 6, apvn  || '', cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+  wc(ws, r, 0, chk1d || '', cellS(false,10,'left'));
+  wc(ws, r, 3, chk2d || '', cellS(false,10,'left'));
+  wc(ws, r, 6, apvd  || '', cellS(false,10,'left'));
+  rh(ws, r, 14); r++;
+
+  ws['!cols'] = [{wch:6},{wch:24},{wch:10},{wch:12},{wch:14},{wch:12},{wch:14},{wch:12},{wch:14}];
+  ws['!ref']  = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:r,c:COLS-1} });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Conveyance bill');
+  const filename = `${zone.replace(/\s+/g,'-')}_Conveyance_Food_${from}_to_${to}.xlsx`;
+  XLSX.writeFile(wb, filename, { bookType:'xlsx', cellStyles:true });
+  msgEl.style.color='var(--green)'; msgEl.textContent='✓ Downloaded: ' + filename;
+  setTimeout(()=>msgEl.textContent='',5000);
+}
+
+// ── Period preview on date change ──
+function updateRptPreview() {
+  const from = document.getElementById('rpt-from').value;
+  const to   = document.getElementById('rpt-to').value;
+  if (!from || !to) return;
+  const dc = filterByDate(dcList, from, to);
+  const cv = filterByDate(cvList, from, to);
+  const dcTotal = dc.reduce((a,c)=>a+c.amount,0);
+  const cvTotal = cv.reduce((a,c)=>a+c.amount,0);
+  const el = document.getElementById('rpt-preview');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:10px;">
+      <span>📋 Daily Cost entries: <strong style="color:var(--accent)">${dc.length}</strong> — Total: <strong style="color:var(--red)">${fmt(dcTotal)}</strong></span>
+      <span>🚗 Conveyance entries: <strong style="color:var(--accent)">${cv.length}</strong> — Total: <strong style="color:var(--red)">${fmt(cvTotal)}</strong></span>
+      <span>📊 Grand Total: <strong style="color:var(--green)">${fmt(dcTotal+cvTotal)}</strong></span>
+    </div>
+    <div style="color:var(--muted);font-size:10px;">Period: ${periodStr(from,to)} &nbsp;|&nbsp; ${periodStrShort(from,to)}</div>
+  `;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const f = document.getElementById('rpt-from');
+  const t = document.getElementById('rpt-to');
+  if(f) f.addEventListener('change', updateRptPreview);
+  if(t) t.addEventListener('change', updateRptPreview);
+});
 
 // ════════════════════════════════════════════════════════════
 //  MODAL
